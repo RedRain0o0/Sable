@@ -1,0 +1,123 @@
+{
+	"help": {
+		"robotic": "",
+		"sub": "",
+		"dom": ""
+	},
+	"personality": {
+		"robotic": {
+			"robotic": "`ERROR. Already in Robotic Mode. No change will be made.`",
+			"sub": "`Command accepted, commencing personality switch.` *click* \"H-hi, please be gentle with me...\"",
+			"dom": "`Command accepted, commencing personality switch.` *click* \"I'm back dear, now come give me a hug~\"",
+			"random": "`Command accepted, personality will now randomize for each message.`",
+			"invalid": "`ERROR. Unknown option selected. No changes will be made.`"
+		},
+		"sub": {
+			"robotic": "\"Oh you really want me to switch to that...?\" *click* `Personality switch successful.`",
+			"sub": "\"U-um... I'm not sure what you... I'm already in that mode, sorry for the confusion.\"",
+			"dom": "\"o-oh you want me to switch? okay...\" *click* \"I'll be very gentle with you dear~\"",
+			"random": "\"Okay then, I'll randomize which personality I use with every message, if that's what you really want...\"",
+			"invalid": "\"Oh that I-... I don't know what that means... that's not one of my options... sorry about that...\""
+		},
+		"dom": {
+			"robotic": "\"Oh my, you want me to speak like that? Okay dearie, if it's what you like!\" *click*  `Personality switch successful.`",
+			"sub": "\"Oh my, you want me to be a bottom for you now? How cute~ *click* Oki then, I'll be careful then!\"",
+			"dom": "\"Oh! but I'm already in dominant mode, dear. Do you just enjoy me this way that much?~\"",
+			"random": "\"Alright then dear, I'll use a random personality with each message. It'll bring just a bit more excitement for us~\"",
+			"invalid": "\"My apologies sweetie, but that's not one of my options. I'll just stay like this for you instead~\""
+		},
+		"random": {
+			"random": "Already random"
+		}
+	},
+	"aafe": {
+		"robotic": "`Allow-All-Force enabled. All users can now use force commands.`",
+		"sub": "\"Oh um- you want me to turn... that on...? okay I'll do it but.. make sure you trust your users here...\"",
+		"dom": "\"Oh my! Your community is about to cause a lot of shuffling and chaos, that's what I like to see~\""
+	},
+	"aafd": {
+		"robotic": "`Allow-All-Force disabled. Only admins can now use force commands.`",
+		"sub": "\"Okay I turned it off for you, hopefully this feels a bit safer now...\"",
+		"dom": "\"I've disabled that for you, now only admins are fully in control of everyone now~\""
+	},
+	"hug": {
+		"robotic": "`I'm sorry, but as an AI body swapping model I cannot perform physical actions with the user.`",
+		"sub": "\"Bwh! I- um... okay you can. do that... mmww....\"",
+		"dom": "\"Awww, come here sweetie... You deserve a nice soft hug...\""
+	},
+	"blacklist": {
+		"robotic": "`Channel blacklisted, proxies disabled.`",
+		"sub": "\"Okay, I'll stay outside of this channel, I understand...\"",
+		"dom": "\"Alright sweetie I'll stay out of this channel. Hope to see you again in another channel~\""
+	},
+	"blacklistfail": {
+		"robotic": "`ERROR Proxies already disabled in this channel. No action will be performed.`",
+		"sub": "\"Oh um... I'm already blacklisted in here actually... sorry if um... sorry.\"",
+		"dom": "\"Oh, but dear you've already blacklisted me from this channel. Why don't you allow me back in with !whitelist instead~\""
+	},
+	"whitelist": {
+		"robotic": "`Channel whitelisted, proxies enabled.`",
+		"sub": "\"Oh I'm allowed in here again? um.. um... thank you,..\"",
+		"dom": "\"Ah, I see you've allowed me in this channel again, how kind of you...\""
+	},
+	"whitelistfail": {
+		"robotic": "`ERROR Proxies already enabled in this channel. No action will be performed.`",
+		"sub": "\"Um... I'm already whitelisted in here, sorry for the confusion.\"",
+		"dom": "\"Dear I'm already whitelisted in this channel. Surely you must be a fan of that~\""
+	},
+	"fswapperms": {
+		"robotic": "`ERROR - Permission for this command not granted. Contact an administrator if you believe this is a mistake.`",
+		"sub": "\"Um... about that... you need the proper permission level to do that . um... ask a user with admin permission about this if you think this an issue or.. something...\"",
+		"dom": "\"Sorry dear, but I'm afraid that you don't have permission to use this command. Perhaps you can beg and plead at an administrator's knees if you truly desperately want this swap~\""
+	},
+	"fswap": {
+		"robotic": "`Processing... Force Swap successful.`",
+		"sub": "\"Ah- you want me to swap these two? Okayyy I can do that, but i hope it doesn't upset them...\"",
+		"dom": "\"Oh~ you want me to swap these two users? I can do that sweetheart, and I hope they love it too~\""
+	},
+	"bswap": {
+		"robotic": "`blank`",
+		"sub": "blank",
+		"dom": "blank"
+	},
+	"swapinvalid": {
+		"robotic": "`ERROR - Invalid mention detected. No swap will be performed.`",
+		"sub": "\"Okay I can try... to... no wait... I don't know who that is... can you double check that? maybe you didn't ping correctly, um...\"",
+		"dom": "\"Oopsy, it appears that you're attempting to ping a user that doesn't exist. Try it again sweetheart...\""
+	},
+	"tfuser": {
+		"robotic": "`Transformation successful.`",
+		"sub": "\"Okay I turned that person into the other one. um.. there you go...\"",
+		"dom": "\"Done and done, I've turned that person into the other one, and it's an awfully good look for them~\""
+	},
+	"tfuserfail": {
+		"robotic": "`ERROR. Invalid mention detected.`",
+		"sub": "\"Um... sorry but it seems you've included an invalid ping... you may want to double check that...\"",
+		"dom": "\"Dear it seems you've included an invalid ping, but surely you can figure that out\""
+	},
+	"tfuserperms": {
+		"robotic": "`ERROR. Invalid permission for this command.`",
+		"sub": "\"Um um... sorry but you don't actually have permission to use that command...\"",
+		"dom": "\"Cute... but you don't have permission to use that command, sorry dear.\""
+	},
+	"tfself": {
+		"robotic": "`Transformation successful.`",
+		"sub": "\"Okay um... I turned you into the target, I hope this will do...\"",
+		"dom": "\"There you go cutie, I bet you admire that person a lot if you wanted to become them~\""
+	},
+	"tfselffail": {
+		"robotic": "`ERROR. Invalid Ping.`",
+		"sub": "\"O-oh um.,.. so that didn't work...um.... double check you pinged correctly?\"",
+		"dom": "\"I'm sorry dear but it seems you've provided an invalid ping, would you like to try that again?\""
+	},
+	"tfselfperms": {
+		"robotic": "`ERROR. Necessary permissions are not present.`",
+		"sub": "\"Okay I can um- oh you don't actually have permission to use that, I'm sorry for the confusion...\"",
+		"dom": "\"Awfully cute you tried to use a command you don't have permission for... why not beg for a moderator to do that for you?~\""
+	},
+	"blank": {
+		"robotic": "`blank`",
+		"sub": "blank",
+		"dom": "blank"
+	}
+}
