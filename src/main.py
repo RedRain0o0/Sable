@@ -336,11 +336,11 @@ async def fake_commands(message: Message):
         await message.reply(f'Config already exists for {message.guild.id}, proceed?')
         logger.info("Config already exists for server")
         
-      #except Exception as e:
-      #  await message.add_reaction("❌")
-      #  await message.channel.send(f'<insert proper use of command>')
-      #  print(e)
-      #  logger.info("Failed to create config")
+      except Exception as e:
+        await message.add_reaction("❌")
+        await message.channel.send(f'<insert proper use of command>')
+        logger.error(e)
+        logger.info("Failed to create config")
         
       return True
     
@@ -474,10 +474,11 @@ async def fake_commands(message: Message):
         try:
           if file.filename.endswith(".tsf"):
             name, avatar, text_modifiers, stutter_chance, pronouns, biography, story, fallback_prefix, fallback_suffix, fallback_muffle, fallback_alt_muffle, prefixes, suffixes, sprinkles, muffles, alt_muffles, censors, triggers, alt_triggers = decode_tsf(open(filename).read())
-
+          
           if file.filename.endswith(".sbl"):
             name, avatar, text_modifiers, stutter_chance, pronouns, biography, story, fallback_prefix, fallback_suffix, fallback_muffle, fallback_alt_muffle, prefixes, suffixes, sprinkles, muffles, alt_muffles, censors, triggers, alt_triggers = decode_sbl(open(filename).read())
-        except:
+        
+        except Exception as e:
           await message.add_reaction("❌")
           await message.channel.send(f'invalid schema')
           os.remove(filename)
@@ -605,7 +606,7 @@ async def fake_commands(message: Message):
         await message.add_reaction("✅")
 
       except Exception as e:
-        print(e)
+        logger.error(e)
         await message.add_reaction("❌")
         await message.channel.send(f'<insert proper use of command>')
       return True
