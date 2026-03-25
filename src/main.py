@@ -562,7 +562,12 @@ async def fake_commands(message: Message):
           await message.channel.send("User isn't transformed")
           await message.add_reaction("❌")
           return True
-        await message.channel.send(database_fetch_value("Biography", "Transformations", f"UserID={message.mentions[0].id} AND GuildID={message.guild.id if guild_tf else 0}"))
+        biography = database_fetch_value("Biography", "Transformations", f"UserID={message.mentions[0].id} AND GuildID={message.guild.id if guild_tf else 0}")
+        if biography == None or biography == "":
+          await message.channel.send("User doesnt have biography")
+          await message.add_reaction("❌")
+          return True
+        await message.channel.send()
       except:
         await message.add_reaction("❌")
         await message.channel.send(f'<insert proper use of command>')
