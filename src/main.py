@@ -354,10 +354,13 @@ async def fake_commands(message: Message):
     return True
   
   command = message.content.split(' ', 1)[0]
+  if not command.startswith(COMMAND_PREFIX):
+    return False
+  command = command.removeprefix(COMMAND_PREFIX)
   
   match command:
     # Server Commands
-    case "sb!setup-server": # Setup server config
+    case "setup-server": # Setup server config
       if not await is_admin(message): return True
       logger.info(f"Setting up config for server {message.guild.id}...")
       args = message.content.split(' ')
@@ -402,8 +405,8 @@ async def fake_commands(message: Message):
         logger.info("Failed to create config")
         
       return True
-    
-    case "sb!confirm-reset": # Confirm server config reset
+
+    case "confirm-reset": # Confirm server config reset
       if not await is_admin(message): return True
       logger.info(f"Overwriting config for {message.guild.id}...")
       referenced = message.reference.resolved
@@ -442,14 +445,14 @@ async def fake_commands(message: Message):
         await message.add_reaction("✅")
         
       return True
-    
-    case "sb!blacklist": # Blacklist current or specified channel
+
+    case "blacklist": # Blacklist current or specified channel
       try:
         message_content = message.content
         message_channel_id = message.channel.id
         blocked_channels = ast.literal_eval(database_fetch_value("BlockedChannels", "GuildConfig", f"GuildID={message.guild.id}"))
-        if message_content.startswith("sb!blacklist "): 
-          content = message_content.removeprefix('sb!blacklist ')
+        if message_content.startswith("blacklist "): 
+          content = message_content.removeprefix('blacklist ')
         else:
           if not message_channel_id in blocked_channels:
             blocked_channels.append(message_channel_id)
@@ -465,14 +468,14 @@ async def fake_commands(message: Message):
       except:
         return True
       return True
-    
-    case "sb!whitelist": # Whitelist current or specified channel
+
+    case "whitelist": # Whitelist current or specified channel
       try:
         message_content = message.content
         message_channel_id = message.channel.id
         blocked_channels = ast.literal_eval(database_fetch_value("BlockedChannels", "GuildConfig", f"GuildID={message.guild.id}"))
-        if message_content.startswith("sb!whitelist "): 
-          content = message_content.removeprefix('sb!whitelist ')
+        if message_content.startswith("whitelist "): 
+          content = message_content.removeprefix('whitelist ')
         else:
           if message_channel_id in blocked_channels:
             blocked_channels.remove(message_channel_id)
@@ -488,9 +491,10 @@ async def fake_commands(message: Message):
       except:
         return True
       return True
-    
+
     # Transformation Commands
-    case "sb!transform": # Transform a user
+    case "transform": # Transform a user
+      # TODO: transform into
       logger.info("Attempting to transform user...")
       args = message.content.split(' ')
       try:
@@ -611,32 +615,55 @@ async def fake_commands(message: Message):
         logger.info("Failed to transform user")
       
       return True
-    
-    case "sb!biography": # Get the biography of a transformed user
+
+    case "body-swap": # Swap transforms
+      args = message.content.split(' ')
+      message.channel.send(f'not implemented')
+      return True
+
+    case "copy": # Swap transforms
+      args = message.content.split(' ')
+      message.channel.send(f'not implemented')
+      return True
+
+    case "biography" | "whois" | "whatis": # Get the biography of a transformed user
       args = message.content.split(' ')
       try:
         if len(message.mentions) != 1:
           raise Exception("Too many mentions")
+        
         guild_tf = database_check_exists("Transformations", f"UserID = {message.mentions[0].id} AND GuildID = {message.guild.id}")
         if not database_check_exists("Transformations", f"UserID={message.mentions[0].id} AND GuildID={message.guild.id if guild_tf else 0}"):
           await message.channel.send("User isn't transformed")
           await message.add_reaction("❌")
           return True
+        
         biography = database_fetch_value("Biography", "Transformations", f"UserID={message.mentions[0].id} AND GuildID={message.guild.id if guild_tf else 0}")
         if biography == None or biography == "":
           await message.channel.send("User doesnt have biography")
           await message.add_reaction("❌")
           return True
-        await message.channel.send()
-      except:
+        
+        embed = Embed(
+          description = database_fetch_value("Biography", "Transformations", f"UserID={message.mentions[0].id} AND GuildID={message.guild.id if guild_tf else 0}"),
+          color = 0xffffff
+        )
+        embed.set_author(
+          name = database_fetch_value("Name", "Transformations", f"UserID={message.mentions[0].id} AND GuildID={message.guild.id if guild_tf else 0}"),
+          icon_url = database_fetch_value("Avatar", "Transformations", f"UserID={message.mentions[0].id} AND GuildID={message.guild.id if guild_tf else 0}")
+        )
+        await message.channel.send(embed=embed)
+        await message.add_reaction("✅")
+      except Exception as e:
+        logger.error(e)
         await message.add_reaction("❌")
         await message.channel.send(f'<insert proper use of command>')
       return True
-    
-    case "sb!consent":
+
+    case "consent":
       return True
-    
-    case "sb!goback":
+
+    case "goback":
       args = message.content.split(' ')
       flags = get_flags(args)
       try:
@@ -670,19 +697,25 @@ async def fake_commands(message: Message):
         await message.channel.send(f'<insert proper use of command>')
       return True
 
+    case "export": # Exports a .sbl file
+      message.channel.send(f'not implemented')
+      return True
+
     # Sable Comands
-    case "sb!self-destruct": # 💥
+    case "self-destruct": # 💥
       await message.channel.send("💥")
       await message.add_reaction("💥")
       return True
-    
-    case "sb!hug": # Hug the girl
+
+    case "hug": # Hug the girl
       await message.channel.send("hug")
       await message.add_reaction("🫂")
       return True
-    
+
     case _:
-      return False
+      await message.add_reaction("❌")
+      await message.channel.send(f'unrecognized command')
+      return True
   
   return False
 
