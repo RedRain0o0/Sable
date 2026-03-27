@@ -18,6 +18,7 @@ TOKEN = os.getenv('TOKEN')
 LOG_PATH = os.getenv('LOG_PATH')
 DATABASE_PATH = os.getenv('DATABASE_PATH')
 ATTACHMENTS_PATH = os.getenv('ATTACHMENTS_PATH')
+REPLY_TYPE = os.getenv('REPLY_TYPE')
 ADMINS = os.getenv('ADMINS')
 WEBHOOK_NAME = os.getenv('WEBHOOK_NAME')
 COMMAND_PREFIX = os.getenv('COMMAND_PREFIX')
@@ -284,6 +285,64 @@ def apply_speech(content: str, memberid: int, guildid: int):
   content = ' '.join(temp_list)
 
   return append_prefix + content + ((" "+prepend_trigger) if is_triggered else prepend_suffix)
+
+def check_is_user_is_transformed(guild: Guild, member: Member):
+  return database_check_exists("Transformations", f"UserID = {member.id} AND GuildID={guild.id}") or database_check_exists("Transformations", f"UserID={member.id} AND GuildID=0")
+
+def reply_embed(message: Message):
+  referenced = message.reference.resolved
+  if len(referenced.content) > 100:
+    preview = referenced.content[:97]
+    reference = referenced.content[97:]
+    print(preview)
+    print(reference)
+    if preview.count("||") % 2 and reference.count("||") % 2:
+      preview += "||"
+    # TODO: Add more markup support
+  else:
+    preview = referenced.content
+  
+  if isinstance(referenced, Message):
+    if isinstance(referenced.author, Member):
+      embed = Embed(
+        description = f'[Reply]({referenced.jump_url})\n{preview}',
+        timestamp = referenced.created_at,
+        color = referenced.author.color
+      )
+    else:
+      embed = Embed(
+        description = f'[Reply]({referenced.jump_url})\n{preview}',
+        timestamp = referenced.created_at,
+        color = 0xffffff
+      )
+    embed.set_author(
+      name = referenced.author.display_name,
+      icon_url = referenced.author.display_avatar.url,
+      url = f"https://discord.com/users/{referenced.author.id}"
+    )
+  else:
+    embed = Embed(
+      title = "__Reply/Forward__",
+      description = "Original Message Not Found.",
+      color = 0x2480ee
+    )
+    logger.error(f'Replying/Forwarding: Original Message Not Found.')
+  return embed
+
+def reply_transformate(message: Message): # TODO: fix this being not working
+  referenced = message.reference.resolved
+  reply = "***Replying to "
+  if referenced.webhook_id == None:
+    reply += f"<@{referenced.author.id}>"
+  else:
+    if database_check_exists("MessageIDs" f"ResultID={referenced.id}"):
+      reply += f"<@{database_fetch_value("MemberID", "MessageIDs", f"ResultID={referenced.id}")}>"
+    else:
+      reply += "`NOT FOUND`"
+  reply += " on "
+  reply += f"https://discord.com/channels/{message.guild.id}/{message.channel.id}/{referenced.id}"
+  reply += ":***\n"
+  return reply
 
 async def fake_commands(message: Message):
   # Bypass commands
@@ -666,7 +725,9 @@ async def on_message(message: Message):
   if channel_blacklisted(message): return
   
 	# Check if user is proxied
-  if not database_check_exists("Transformations", f"UserID = {message.author.id} AND GuildID = {message.guild.id}") and not database_check_exists("Transformations", f"UserID = {message.author.id} AND GuildID = 0"): return
+  if not check_is_user_is_transformed(message.guild, message.author): return
+
+  # logger.info(f"[{message.guild.name}] ({message.author.name}) {message.content}")
 
   channel = message.channel
   member = message.author
@@ -689,7 +750,15 @@ async def on_message(message: Message):
   
   # Setup message
   guild_tf = database_check_exists("Transformations", f"UserID = {message.author.id} AND GuildID = {message.guild.id}")
-  content = apply_speech(message.content, message.author.id, message.guild.id if guild_tf else 0)
+
+  if message.content != "":
+    try:
+      content = apply_speech(message.content, message.author.id, message.guild.id if guild_tf else 0)
+    except Exception as e:
+      logger.error(e)
+      logger.info(f"[{message.guild.name}] ({message.author.name}) {message.content if message.content != "" else "Message was empty"}")
+  else:
+    content = ""
   files = []
   filesLinks = []
   for attachment in message.attachments:
@@ -698,8 +767,10 @@ async def on_message(message: Message):
     files.append(file)
   embeds: List[Embed] = []
   if message.reference:
-    print("Has reply")
-    #embeds.insert(0, reply(message))
+    if REPLY_TYPE == "EMBED":
+      embeds.insert(0, reply_embed(message))
+    elif REPLY_TYPE == "TRANSFORMATE":
+      content = reply_transformate(message) + content
   
 	# Webhook
   has_server_tf = database_check_exists("Transformations", f"UserID={member.id} AND GuildID={message.guild.id}")

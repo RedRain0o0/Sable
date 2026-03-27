@@ -230,7 +230,7 @@ def decode_sbl(sbl: str):
         temp_list.append(alt_trigger.split("|%")[1])
         alt_triggers_split.append(temp_list)
   except Exception as e:
-    raise Exception("Something went wrong")
+    raise Exception(e)
   
   if print_file:
     print(f"Schema: {sbl[0]}")
@@ -256,4 +256,4 @@ def decode_sbl(sbl: str):
   return sbl[1], sbl[2], sbl[3], sbl[4], sbl[5], sbl[6], sbl[7], sbl[8], sbl[9], sbl[10], sbl[11], str(prefixes_split), str(suffixes_split), str(sprinkles_split), str(muffles_split), str(alt_muffles_split), str(censors_split), str(triggers_split), str(alt_triggers_split)
 
 #decode_tsf(open("tfs/tsf1/Cirno_Fumo.tsf", 'r').read()) # print()
-#decode_sbl(open("readable.sbl", 'r').read()) # print()
+#decode_sbl(open("tfs/sbl1.0/Test2.sbl", 'r').read()) # print()
