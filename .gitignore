@@ -1,8 +1,10 @@
-config/.env
-logs/*
-database/*
 .venv/*
+database/*
+logs/*
 src/__pycache__/*
+src/tests/*
 src/tfs/*
-TODO
+
 .sbl_specifications
+config/.env
+TODO
