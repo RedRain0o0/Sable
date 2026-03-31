@@ -11,6 +11,10 @@ from typing import List
 
 # Setup
 client = Client(intents=Intents.all(), activity=Game(name='with the code'))
+ping_pattern = re.compile(r"(<@!?\d+>)")
+channel_pattern = re.compile(r"(<#!?\d+>)")
+emoji_pattern = re.compile(r"(<:!?.+:!?\d+>)")
+animated_emoji_pattern = re.compile(r"(<a:!?.+:!?\d+>)")
 
 # .env
 load_dotenv("../config/.env")
@@ -144,8 +148,38 @@ def is_binary_file(source_path):
     return not any(initial_bytes.startswith(bom) for bom in _TEXT_BOMS) \
            and b'\0' in initial_bytes
 
+# Thank you to chillymosh in the discord.py server for helping with this
+def tokenize(message: str) -> list[str]:
+  return [token for token in re.split(r'(\n)|[^\S\n]+', message) if token]
+
 def apply_speech(content: str, memberid: int, guildid: int):
   where = f"UserID={memberid} AND GuildID={guildid}"
+
+  content = content.replace("’", "'").replace("“", "\"").replace("”", "\"")
+
+  # Fix emojis
+  words = re.split(emoji_pattern, content)
+  temp_list = []
+  for word in words:
+    if word != '' and emoji_pattern.match(word) != None:
+      is_animated = False
+      emoji_name = word.removeprefix("<").removesuffix(">").split(":")[1]
+      emoji_id = int(word.removeprefix("<").removesuffix(">").split(":")[2])
+      emoji = client.get_emoji(emoji_id)
+      if emoji == None:
+        word = f"[{emoji_name}](https://cdn.discordapp.com/emojis/{emoji_id}.webp?size=48&animated={"true" if is_animated else "false"}&name={emoji_name}&lossless=true)"
+    if word != '' and animated_emoji_pattern.match(word) != None:
+      is_animated = True
+      emoji_name = word.removeprefix("<").removesuffix(">").split(":")[1]
+      emoji_id = int(word.removeprefix("<").removesuffix(">").split(":")[2])
+      emoji = client.get_emoji(emoji_id)
+      if emoji == None:
+        word = f"[{emoji_name}](https://cdn.discordapp.com/emojis/{emoji_id}.webp?size=48&animated={"true" if is_animated else "false"}&name={emoji_name}&lossless=true)"
+    temp_list.append(word)
+  content = ' '.join(temp_list)
+
+  swap_id = database_fetch_value("SwapID", "Transformations", f"UserID={memberid} AND GuildID={guildid}")
+  if swap_id != 0: return content
 
   # Alt Muffles
   alt_muffles = ast.literal_eval(database_fetch_value("AltMuffles", "Transformations", where))
@@ -156,7 +190,7 @@ def apply_speech(content: str, memberid: int, guildid: int):
       break
   if fallback_alt_muffle != None and fallback_alt_muffle != "":
     return fallback_alt_muffle
-  
+
   # Alt Triggers
   alt_triggers = ast.literal_eval(database_fetch_value("AltTriggers", "Transformations", where))
   alt_trigger_send = None
@@ -205,12 +239,14 @@ def apply_speech(content: str, memberid: int, guildid: int):
   
   # Sprinkles
   sprinkles = ast.literal_eval(database_fetch_value("Sprinkles", "Transformations", where))
-  words = content.split()
+  words = content.split(' ')
   temp_list = []
   for word in words:
     temp_list.append(f" {word}")
     for sprinkle in sprinkles:
       if (random.random() * 100) <= float(sprinkle[1]):
+        if not sprinkle[0].startswith(", "):
+          sprinkle[0] = " " + sprinkle[0]
         temp_list.append(sprinkle[0])
         break
   content = ''.join(temp_list)
@@ -218,9 +254,14 @@ def apply_speech(content: str, memberid: int, guildid: int):
   # Muffles
   muffles = ast.literal_eval(database_fetch_value("Muffles", "Transformations", where))
   fallback_muffle = database_fetch_value("FallbackMuffle", "Transformations", where)
-  words = content.split()
+  words = tokenize(content)
+  print(words)
   temp_list = []
   for word in words:
+    if word == "\n":
+      temp_list.append(word)
+      continue
+    print("Attempting muffle")
     muffled = False
     key = re.sub(r'[^\w\s]', '', word)
     for muffle in muffles:
@@ -243,12 +284,16 @@ def apply_speech(content: str, memberid: int, guildid: int):
         word = word.lower().replace(key.lower(), replacement)
     temp_list.append(word)
   content = ' '.join(temp_list)
-
+  content = re.sub(r" *\n *", "\n", content)
+  
   # Censors
   censors = ast.literal_eval(database_fetch_value("Censors", "Transformations", where))
-  words = content.split()
+  words = tokenize(content)
   temp_list = []
   for word in words:
+    if word == "\n":
+      temp_list.append(word)
+      continue
     key = re.sub(r'[^\w\s]', '', word)
     for censor in censors:
       if key.lower() == censor[0]:
@@ -260,7 +305,8 @@ def apply_speech(content: str, memberid: int, guildid: int):
         word = word.lower().replace(key.lower(), replacement)
     temp_list.append(word)
   content = ' '.join(temp_list)
-
+  content = re.sub(r" *\n *", "\n", content)
+  
   # Triggers
   is_triggered = False
   triggers = ast.literal_eval(database_fetch_value("Triggers", "Transformations", where))
@@ -273,12 +319,44 @@ def apply_speech(content: str, memberid: int, guildid: int):
       prepend_trigger = trigger[1]
       is_triggered = True
   content = content[0:lowest_trigger]
-
+  
+  # Fix a/an
+  words = tokenize(content)
+  temp_list = []
+  vowels = ['a', 'e', 'i', 'o', 'u']
+  for index in range(len(words)):
+    word = words[index]
+    if word.lower() == "a" or word.lower() == "an":
+      try:
+        next_word = words[index+1]
+        if next_word[0].lower() in vowels and word.lower() == "a":
+          if word.islower():
+            word = "an"
+          if word.istitle():
+            word = "An"
+          if word.isupper():
+            word = "AN"
+        elif word.lower() == "an":
+          if word.islower():
+            word = "a"
+          if word.istitle():
+            word = "A"
+          if word.isupper():
+            word = "A"
+      except IndexError:
+        break
+    temp_list.append(word)
+  content = ' '.join(temp_list)
+  content = re.sub(r" *\n *", "\n", content)
+  
   # Stutter
   stutter_chance = database_fetch_value("StutterChance", "Transformations", where)
-  words = content.split()
+  words = tokenize(content)
   temp_list = []
   for word in words:
+    if word == "\n":
+      temp_list.append(word)
+      continue
     if (random.random() * 100) <= float(stutter_chance):
       word = word[0:1] + "-" + word
     temp_list.append(word)
@@ -657,7 +735,7 @@ async def fake_commands(message: Message):
       except Exception as e:
         logger.error(e)
         await message.add_reaction("❌")
-        await message.channel.send(f'<insert proper use of command>')
+        await message.channel.send(f"Improper use of command.```{COMMAND_PREFIX}{command} <@user>```")
       return True
 
     case "consent":
@@ -799,6 +877,9 @@ async def on_message(message: Message):
     file = await attachment.to_file(spoiler=attachment.is_spoiler())
     files.append(file)
   embeds: List[Embed] = []
+  if message.author.bot:
+    for embed in message.embeds:
+      embeds.append(embed)
   if message.reference:
     if REPLY_TYPE == "EMBED":
       embeds.insert(0, reply_embed(message))
